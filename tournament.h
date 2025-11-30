@@ -23,8 +23,8 @@ private:
     MatchNode* root;
     int matchCounter; 
 
-    // Internal Helpers
-    MatchNode* buildTreeRecursive(vector<string>& currentTeams);
+
+    MatchNode* buildTree(vector<string>& currentTeams);
     void printRecursive(MatchNode* node, int space);
     void destroyTree(MatchNode* node);
     void processAutoWinByes(MatchNode* node); 
@@ -40,15 +40,15 @@ public:
     Tournament();
     ~Tournament();
 
-    // Core Functions
+    // Function Bracket
     void initBracket(vector<string> teams); 
     void showBracket();                            
     
-    // Admin & Logic
+    // Function Admin
     void showActiveMatches();                      
     void updateMatchWinner(int id, string winner); 
     
-    // General Features
+    
     void findTeamStatus(string teamName);
     void printAllTraversals();
     bool isReady();
