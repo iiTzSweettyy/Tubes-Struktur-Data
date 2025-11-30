@@ -21,27 +21,24 @@ struct MatchNode {
 class Tournament {
 private:
     MatchNode* root;
-    int matchCounter; 
+    int jumlahMatch; 
 
 
     MatchNode* buildTree(vector<string>& currentTeams);
     void printRecursive(MatchNode* node, int space);
     void destroyTree(MatchNode* node);
-    void processAutoWinByes(MatchNode* node); 
-    void getOpenMatches(MatchNode* node, vector<MatchNode*>& list);
-    bool searchRecursive(MatchNode* node, string targetName);
+    void byesAutoWin(MatchNode* node); 
+    void nungguMatch(MatchNode* node, vector<MatchNode*>& list);
+    bool searching(MatchNode* node, string targetName);
     
     // Traversals
-    void preOrderRec(MatchNode* node);
-    void inOrderRec(MatchNode* node);
-    void postOrderRec(MatchNode* node);
+    void preOrder(MatchNode* node);
+    void inOrder(MatchNode* node);
+    void postOrder(MatchNode* node);
 
-public:
-    Tournament();
-    ~Tournament();
 
     // Function Bracket
-    void initBracket(vector<string> teams); 
+    void bikinBracket(vector<string> teams); 
     void showBracket();                            
     
     // Function Admin
@@ -51,7 +48,7 @@ public:
     
     void findTeamStatus(string teamName);
     void printAllTraversals();
-    bool isReady();
+    bool cekBracket();
 };
 
 // CLASS ADMIN AUTH
