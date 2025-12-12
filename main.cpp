@@ -55,7 +55,7 @@ int main() {
                 break;
             
             case 2: tree.showBracket(); system("pause"); break;
-            case 3: { string c; cout<<"Nama: "; cin>>c; tree.findTeamStatus(c); system("pause"); } break;
+            case 3: { string c; cout<<"Nama: "; cin.ignore(); getline(cin, c); tree.findTeamStatus(c); system("pause"); } break;
             case 4: tree.printAllTraversals(); system("pause"); break;
             
             case 5: if(isAdmin) {
@@ -65,10 +65,65 @@ int main() {
                     cout << "--- KELOLA TIM ---" << endl;
                     printTeamList(teams);
                     cout << "1. Add  2. Edit  3. Delete  0. Back\n>> "; cin >> sm;
-                    if(sm==1) { string n; cout<<"Nama: "; cin>>n; teams.push_back(n); }
-                    else if(sm==2 && !teams.empty()) { int i; cout<<"No: "; cin>>i; if(i>0 && i<=teams.size()){ cout<<"Baru: "; cin>>teams[i-1]; }}
-                    else if(sm==3 && !teams.empty()) { int i; cout<<"No: "; cin>>i; if(i>0 && i<=teams.size()) teams.erase(teams.begin()+i-1); }
-                } while(sm!=0);
+                    if (!(cin >> sm)) {
+                        cin.clear();
+                        cin.ignore(1000, '\n');
+                        sm = -1; 
+                        continue; 
+                    }
+
+                    if(sm == 1) { 
+                        string n; 
+                        cout << "Nama: "; 
+                        
+                        cin.ignore();
+                        getline(cin, n);
+
+                        if (n.empty()) {
+                            cout << ">> [ERROR] Nama tim tidak boleh kosong" << endl;
+                            system("pause");
+                            continue;
+                        }
+                        
+                        teams.push_back(n);
+                    }
+                    
+                    else if(sm == 2 && !teams.empty()) { 
+                        int i; 
+                        cout << "No: "; 
+                        if(cin >> i) {
+                            if(i>0 && i<=teams.size()){ 
+                                string nBaru;
+                                cout << "Nama Baru: "; 
+                                cin.ignore();
+                                getline(cin, nBaru);
+                                
+                                if(nBaru.empty()) {
+                                    cout << ">> [ERROR] Nama tim tidak boleh kosong" << endl;
+                                    system("pause");
+                                    continue;
+                                }
+
+                                teams[i-1] = nBaru;
+                            } else {
+                                cout << ">> No tim tidak valid." << endl; system("pause");
+                            }
+                        } else {
+                            cin.clear(); cin.ignore(1000, '\n');
+                        }
+                    }
+                    
+                    else if(sm == 3 && !teams.empty()) { 
+                        int i; 
+                        cout << "No: "; 
+                        if(cin >> i) {
+                            if(i>0 && i<=teams.size()) teams.erase(teams.begin()+i-1); 
+                        } else {
+                            cin.clear(); cin.ignore(1000, '\n');
+                        }
+                    }
+
+                } while(sm != 0);
             } break;
 
             case 6: if(isAdmin) {
@@ -83,7 +138,9 @@ int main() {
                     cout << "\nMasukkan ID Match yang mau diupdate (0 Batal): ";
                     int id; cin >> id;
                     if(id > 0) {
-                        string w; cout << "Siapa Pemenangnya? "; cin >> w;
+                        string w; cout << "Siapa Pemenangnya? ";
+                        cin.ignore();
+                        getline(cin, w);
                         tree.updateMatchWinner(id, w);
                         system("pause");
                     }
