@@ -263,7 +263,7 @@ void Tournament::printAllTraversals() {
 }
 
 // --- ADMIN ---
-AdminAuth::AdminAuth() { username="admin"; password="123"; }
+AdminAuth::AdminAuth() { username="admin"; password="rahasia"; }
 bool AdminAuth::login() {
     string u, p=""; char c;
     system("cls"); cout<<"=== LOGIN ADMIN ==="<<endl;
