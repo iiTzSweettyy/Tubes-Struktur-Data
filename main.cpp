@@ -47,6 +47,9 @@ int main() {
     bool isAdmin = false;
     int pil;
 
+    //LOAD DATA OTOMATIS SAAT MULAI
+    tree.loadFromCSV(teams);
+
     do {
         system("cls");
         cout << "\n==============================================" << endl;
@@ -69,7 +72,6 @@ int main() {
         
         cout << "0. Keluar" << endl;
         
-        // Pakai fungsi aman biar ga error kalau diisi huruf
         pil = getValidNumber(">> Pilih: ");
 
         switch(pil) {
@@ -92,6 +94,7 @@ int main() {
             
             case 5: if(isAdmin) {
                 int sm;
+                bool dataBerubah = false; 
                 do {
                     system("cls");
                     cout << "--- KELOLA TIM ---" << endl;
@@ -102,30 +105,35 @@ int main() {
 
                     if(sm == 1) { 
                         string n = getValidString("Nama Tim Baru: ");
-                        if (!n.empty()) teams.push_back(n);
+                        if (!n.empty()) { teams.push_back(n); dataBerubah = true; }
                         else cout << ">> Nama tidak boleh kosong!" << endl;
                     }
                     else if(sm == 2 && !teams.empty()) { 
                         int i = getValidNumber("Nomor Tim yg diedit: ");
                         if(i>0 && i<=teams.size()) {
                             string nBaru = getValidString("Nama Baru: ");
-                            if(!nBaru.empty()) teams[i-1] = nBaru;
+                            if(!nBaru.empty()) { teams[i-1] = nBaru; dataBerubah = true; }
                         } else {
                             cout << ">> Nomor tidak valid!" << endl; system("pause");
                         }
                     }
                     else if(sm == 3 && !teams.empty()) { 
                         int i = getValidNumber("Nomor Tim yg dihapus: ");
-                        if(i>0 && i<=teams.size()) teams.erase(teams.begin()+i-1);
+                        if(i>0 && i<=teams.size()) { teams.erase(teams.begin()+i-1); dataBerubah = true; }
                         else {
                             cout << ">> Nomor tidak valid!" << endl; system("pause");
                         }
                     }
                 } while(sm != 0);
+
+                if(dataBerubah) {
+                    tree.saveToCSV(teams); 
+                }
             } break;
 
             case 6: if(isAdmin) {
                 tree.bikinBracket(teams);
+                tree.saveToCSV(teams); 
                 system("pause");
             } break;
 
@@ -139,6 +147,8 @@ int main() {
                     if(id > 0) {
                         string w = getValidString("Siapa Pemenangnya? ");
                         tree.updateMatchWinner(id, w);
+                        tree.saveToCSV(teams); 
+                        
                         system("pause");
                     }
                 }

@@ -27,7 +27,10 @@ private:
     void destroyTree(MatchNode* node);
     void byesAutoWin(MatchNode* node); 
     void nungguMatch(MatchNode* node, vector<MatchNode*>& list);
-    bool searching(MatchNode* node, string targetName);
+    
+    void getFinishedMatches(MatchNode* node, vector<string>& dataList);
+    // Di bagian private:
+    MatchNode* searching(MatchNode* node, string targetName);
 
     void preOrder(MatchNode* node);
     void inOrder(MatchNode* node);
@@ -48,6 +51,10 @@ public:
     void findTeamStatus(string teamName);
     void printAllTraversals();
     bool cekBracket();
+
+    // Fitur Database
+    void saveToCSV(vector<string>& teams);
+    void loadFromCSV(vector<string>& teams);
 };
 
 class AdminAuth {

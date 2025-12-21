@@ -1,4 +1,6 @@
 #include "tournament.h"
+#include <fstream>
+#include <sstream>
 #include <iostream>
 #include <conio.h>
 
@@ -56,6 +58,14 @@ void Tournament::byesAutoWin(MatchNode* node) {
             node->teamName = "BYE";
         }
     }
+}
+
+string toLowerStr(string str) {
+    string hasil = "";
+    for (char c : str) {
+        hasil += tolower(c);
+    }
+    return hasil;
 }
 
 //membuat tree nya make algoritma rekursif
@@ -151,7 +161,7 @@ void Tournament::showActiveMatches() {
     }
 }
 
-void Tournament::updateMatchWinner(int id, string winner) {
+void Tournament::updateMatchWinner(int id, string winnerInput) {
     vector<MatchNode*> allMatches;
     nungguMatch(root, allMatches);
 
@@ -168,30 +178,38 @@ void Tournament::updateMatchWinner(int id, string winner) {
             // Kalau salah satu tim masih "TBD"
             if (teamA == "TBD" || teamB == "TBD") {
                 cout << ">> Pertandingan belum siap! Salah satu slot masih 'TBD'." << endl;
-                cout << ">> Selesaikan dulu pertandingan di babak sebelumnya (ID Child)." << endl;
                 return; 
             }
 
-            // --- VALIDASI 2: CEK INPUTAN USER ---
-            // Input harus sama dengan Team A atau Team B
-            if (winner != teamA && winner != teamB) {
+            string inputLower = toLowerStr(winnerInput); 
+        
+            string teamALower = toLowerStr(teamA); 
+            
+            string teamBLower = toLowerStr(teamB); 
+
+            // 3. LOGIKA BANDING & SIMPAN
+            if (inputLower == teamALower) {
+                m->teamName = teamA; 
+                cout << ">> [SUKSES] Pemenang " << m->matchLabel << " adalah " << teamA << endl;
+            }
+            else if (inputLower == teamBLower) {
+                m->teamName = teamB;
+                cout << ">> [SUKSES] Pemenang " << m->matchLabel << " adalah " << teamB << endl;
+            }
+            else {
                 cout << ">> Input Salah!" << endl;
                 cout << ">> Peserta match ini hanya: " << teamA << " VS " << teamB << endl;
-                cout << ">> Anda tidak bisa menginput '" << winner << "'." << endl;
+                cout << ">> Anda mengetik: " << winnerInput << endl;
                 return;
             }
 
-            // Kalau lolos validasi, simpan
-            m->teamName = winner;
-            cout << ">> [SUKSES] Pemenang " << m->matchLabel << " adalah " << winner << endl;
-            
-            //Auto Win BYE
+            // 4. Update otomatis jika ada BYE di depannya
             byesAutoWin(root); 
             break;
         }
     }
     
-    if (!found) cout << ">> [ERROR] Match ID tidak ditemukan di daftar aktif." << endl;
+    if (!found) cout << ">> [ERROR] Match ID tidak ditemukan / sudah selesai." << endl;
 }
 
 
@@ -205,11 +223,10 @@ void Tournament::showBracket() {
     cout << "=============================================================" << endl;
 }
 
-// Update fungsi visualisasi agar lebih lebar
+
 void Tournament::printTree(MatchNode* node, int space) {
     if (node == NULL) return;
 
-    // --- PENGATURAN JARAK ---
     int jarak = 12; 
 
     space += jarak;
@@ -228,15 +245,34 @@ void Tournament::printTree(MatchNode* node, int space) {
 // Traversal
 bool Tournament::cekBracket() { return root != NULL; }
 
-bool Tournament::searching(MatchNode* node, string targetName) {
-    if (node == NULL) return false;
-    if (node->teamName == targetName) return true;
-    return searching(node->left, targetName) || searching(node->right, targetName);
-}
-void Tournament::findTeamStatus(string teamName) {
-    if(!cekBracket()){ cout<<">> Kosong."<<endl; return; }
-    if(searching(root, teamName)) cout<<">> [ADA] Tim "<<teamName<<" ditemukan."<<endl;
-    else cout<<">> [TIDAK ADA] Tim "<<teamName<<" tidak ditemukan."<<endl;
+MatchNode* Tournament::searching(MatchNode* node, string targetName) {
+    if (node == NULL) return NULL;
+
+    if (toLowerStr(node->teamName) == toLowerStr(targetName)) {
+        return node;
+    }
+
+    MatchNode* leftResult = searching(node->left, targetName);
+    if (leftResult != NULL) return leftResult;
+
+    return searching(node->right, targetName);
+}  
+
+void Tournament::findTeamStatus(string inputUser) {
+    if(!cekBracket()){ 
+        cout << ">> Bracket belum dibuat (Kosong)." << endl; 
+        return; 
+    }
+
+    MatchNode* hasil = searching(root, inputUser);
+
+    if (hasil != NULL) {
+        cout << ">> [DITEMUKAN] Tim: " << hasil->teamName << endl; 
+        cout << ">> Status: Berada di slot " << hasil->matchLabel << endl;
+    } 
+    else {
+        cout << ">> [TIDAK ADA] Tim \"" << inputUser << "\" tidak ditemukan." << endl;
+    }
 }
 
 void Tournament::preOrder(MatchNode* node) {
@@ -262,8 +298,96 @@ void Tournament::printAllTraversals() {
     cout << "\nPost-Order: "; postOrder(root); cout << "END\n";
 }
 
+//FITUR DATABASE CSV
+// Helper untuk mengambil match yang sudah selesai (Internal)
+void Tournament::getFinishedMatches(MatchNode* node, vector<string>& dataList) {
+    if (node == NULL) return;
+    
+    getFinishedMatches(node->left, dataList);
+    getFinishedMatches(node->right, dataList);
+
+    if (node->matchID > 0 && node->teamName != "TBD" && node->teamName != "BYE") {
+        string row = to_string(node->matchID) + "," + node->teamName;
+        dataList.push_back(row);
+    }
+}
+
+void Tournament::saveToCSV(vector<string>& teams) {
+    ofstream fileTeams("data_teams.csv");
+    if (fileTeams.is_open()) {
+        fileTeams << "No,Nama Tim" << endl; 
+        
+        for (size_t i = 0; i < teams.size(); i++) {
+            fileTeams << (i + 1) << "," << teams[i] << endl;
+        }
+        fileTeams.close();
+    }
+
+    if (cekBracket()) {
+        ofstream fileMatches("data_matches.csv");
+        if (fileMatches.is_open()) {
+            fileMatches << "MatchID,Winner" << endl; // Header
+            
+            vector<string> finishedMatches;
+            getFinishedMatches(root, finishedMatches);
+            
+            for (string row : finishedMatches) {
+                fileMatches << row << endl;
+            }
+            fileMatches.close();
+        }
+    }
+    cout << ">> [CSV] Data berhasil disimpan ke format Excel!" << endl;
+}
+
+void Tournament::loadFromCSV(vector<string>& teams) {
+    teams.clear();
+    string line, word;
+    
+    ifstream fileTeams("data_teams.csv");
+    if (fileTeams.is_open()) {
+        getline(fileTeams, line); 
+        
+        while (getline(fileTeams, line)) {
+            stringstream ss(line);
+            string no, nama;
+            
+            getline(ss, no, ',');
+            getline(ss, nama, ',');
+            
+            if (!nama.empty()) teams.push_back(nama);
+        }
+        fileTeams.close();
+    }
+
+    if (teams.size() >= 2) {
+        bikinBracket(teams);
+    } else {
+        return;
+    }
+
+    ifstream fileMatches("data_matches.csv");
+    if (fileMatches.is_open()) {
+        getline(fileMatches, line);
+        
+        while (getline(fileMatches, line)) {
+            stringstream ss(line);
+            string idStr, winner;
+            
+            getline(ss, idStr, ','); 
+            getline(ss, winner, ',');
+            
+            if (!idStr.empty() && !winner.empty()) {
+                updateMatchWinner(stoi(idStr), winner);
+            }
+        }
+        fileMatches.close();
+        cout << ">> [CSV] Data turnamen berhasil diload!" << endl;
+    }
+}
+
 // --- ADMIN ---
-AdminAuth::AdminAuth() { username="admin"; password="rahasia"; }
+AdminAuth::AdminAuth() { username="admin"; password="123"; }
 bool AdminAuth::login() {
     string u, p=""; char c;
     system("cls"); cout<<"=== LOGIN ADMIN ==="<<endl;
